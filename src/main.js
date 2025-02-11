@@ -141,6 +141,31 @@ highToggle.addEventListener("click", () => {
   highTask.classList.remove("hidden");
 });
 
+removeAllButtonLow.addEventListener("click", () => {
+  const yes = confirm("Are you sure you want to delete all low task?");
+  if (yes) {
+    todoListLow.innerHTML = "";
+  }
+});
+removeAllButtonMedium.addEventListener("click", () => {
+  const yes = confirm("Are you sure you want to delete all medium task?");
+  if (yes) {
+    todoListMedium.innerHTML = "";
+  }
+});
+removeAllButtonHigh.addEventListener("click", () => {
+  const yes = confirm("Are you sure you want to delete all high task?");
+  if (yes) {
+    todoListHigh.innerHTML = "";
+  }
+});
+removeAllButtonDone.addEventListener("click", () => {
+  const yes = confirm("Are you sure you want to delete all done task?");
+  if (yes) {
+    doneList.innerHTML = "";
+  }
+});
+
 function dateNow() {
   const days = [
     "Sunday",
@@ -235,41 +260,43 @@ function renderTask(taskObj) {
   checkbox.addEventListener("change", () => {
     if (checkbox.checked) {
       titleColumn.classList.add("line-through", "text-gray-400");
-      doneList.appendChild(row);
+
+      const doneRow = row.cloneNode(true);
+      const doneCheckbox = doneRow.querySelector("input[type='checkbox']");
+      if (doneCheckbox) {
+        doneCheckbox.remove();
+      }
+
+      const doneDeleteButton = doneRow.querySelector("button");
+      if (doneDeleteButton) {
+        doneDeleteButton.addEventListener("click", () => {
+          const yes = confirm("Are you sure you want to delete this task?");
+          if (yes) {
+            doneRow.remove();
+          }
+        });
+      }
+
+      doneList.appendChild(doneRow);
     } else {
       titleColumn.classList.remove("line-through", "text-gray-400");
-      if (taskObj.taskLevel === "Low") {
-        lowToggle.click();
-        todoListLow.appendChild(row);
-      } else if (taskObj.taskLevel === "Medium") {
-        mediumToggle.click();
-        todoListMedium.appendChild(row);
-      } else if (taskObj.taskLevel === "High") {
-        highToggle.click();
-        todoListHigh.appendChild(row);
-      }
+
+      doneList.querySelectorAll("tr").forEach((doneRow) => {
+        if (doneRow.textContent === row.textContent) {
+          doneRow.remove();
+        }
+      });
     }
   });
 
   const dotColumn = document.createElement("span");
   dotColumn.className = "dotColumn w-2 h-2 rounded-full";
 
-  function parseDate(dateStr) {
-    const [day, month, year] = dateStr.split("/").map(Number);
-    return new Date(year, month - 1, day);
-  }
+  updateDotColor(dotColumn, taskObj.taskDate);
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const taskDate = parseDate(taskObj.taskDate);
-
-  if (taskDate.getTime() === today.getTime()) {
-    dotColumn.classList.add("bg-yellow-500");
-  } else if (taskDate < today) {
-    dotColumn.classList.add("bg-red-500");
-  } else {
-    dotColumn.classList.add("bg-green-500");
-  }
+  setInterval(() => {
+    updateDotColor(dotColumn, taskObj.taskDate);
+  }, 1000);
 
   const dateColumn = document.createElement("p");
   dateColumn.className = "text-xs text-gray-500";
@@ -322,4 +349,20 @@ function formatDueDate(inputDate) {
   const year = date.getFullYear();
 
   return `${day}/${month}/${year}`;
+}
+
+function updateDotColor(dotColumn, taskDate) {
+  const today = new Date();
+  const [day, month, year] = taskDate.split("/").map(Number);
+  const taskDueDate = new Date(year, month - 1, day);
+
+  dotColumn.classList.remove("bg-red-500", "bg-yellow-500", "bg-green-500");
+
+  if (taskDueDate < today) {
+    dotColumn.classList.add("bg-red-500");
+  } else if (taskDueDate.toDateString() === today.toDateString()) {
+    dotColumn.classList.add("bg-yellow-500");
+  } else {
+    dotColumn.classList.add("bg-green-500");
+  }
 }
