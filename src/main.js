@@ -177,18 +177,18 @@ function dateNow() {
     "Saturday",
   ];
   const months = [
-    "January",
-    "February",
-    "March",
-    "April",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
     "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sept",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
 
   const date = new Date();
@@ -263,8 +263,12 @@ function renderTask(taskObj) {
 
       const doneRow = row.cloneNode(true);
       const doneCheckbox = doneRow.querySelector("input[type='checkbox']");
+      const doneTitleColumn = doneRow.querySelector(".title-column");
       if (doneCheckbox) {
         doneCheckbox.remove();
+      }
+      if (doneTitleColumn) {
+        doneTitleColumn.classList.remove("line-through", "text-gray-400");
       }
 
       const doneDeleteButton = doneRow.querySelector("button");
@@ -280,7 +284,6 @@ function renderTask(taskObj) {
       doneList.appendChild(doneRow);
     } else {
       titleColumn.classList.remove("line-through", "text-gray-400");
-
       doneList.querySelectorAll("tr").forEach((doneRow) => {
         if (doneRow.textContent === row.textContent) {
           doneRow.remove();
@@ -293,17 +296,16 @@ function renderTask(taskObj) {
   dotColumn.className = "dotColumn w-2 h-2 rounded-full";
 
   updateDotColor(dotColumn, taskObj.taskDate);
-
   setInterval(() => {
     updateDotColor(dotColumn, taskObj.taskDate);
-  }, 1000);
+  }, 60000);
 
   const dateColumn = document.createElement("p");
   dateColumn.className = "text-xs text-gray-500";
   dateColumn.textContent = taskObj.taskDate;
 
   const titleColumn = document.createElement("p");
-  titleColumn.className = "text-sm font-medium";
+  titleColumn.className = "title-column text-sm font-medium";
   titleColumn.textContent = taskObj.taskTitle;
 
   const bottomColumn = document.createElement("td");
@@ -353,14 +355,17 @@ function formatDueDate(inputDate) {
 
 function updateDotColor(dotColumn, taskDate) {
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   const [day, month, year] = taskDate.split("/").map(Number);
   const taskDueDate = new Date(year, month - 1, day);
+  taskDueDate.setHours(0, 0, 0, 0);
 
   dotColumn.classList.remove("bg-red-500", "bg-yellow-500", "bg-green-500");
 
   if (taskDueDate < today) {
     dotColumn.classList.add("bg-red-500");
-  } else if (taskDueDate.toDateString() === today.toDateString()) {
+  } else if (taskDueDate.getTime() === today.getTime()) {
     dotColumn.classList.add("bg-yellow-500");
   } else {
     dotColumn.classList.add("bg-green-500");
